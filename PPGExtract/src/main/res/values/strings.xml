@@ -1,0 +1,12 @@
+<resources>
+    <string name="calibration_title">Calibration</string>
+    <string name="calibration_info1">Cover your camera well and wait for the signal strength to be good.</string>
+    <string name="calibration_info2">Cover both camera and flashlight in case your signal strength still shows poor</string>
+    <string name="scan_title">Scan In Progress</string>
+    <string name="scan_info">We have started your scan. Please don\'t move your finger. It will take 30 seconds to scan.</string>
+    <string name="warning_msg">Please note, poor signal might not be able to \ngive you the best result</string>
+    <string name="extra_info">Check other parameters after the scan is completed.</string>
+    <string name="back_button">BACK</string>
+    <string name="cancel_scan">Cancel Scan</string>
+    <string name="algo2_scan" translatable="false">Try Alternate Scan</string>
+</resources>
