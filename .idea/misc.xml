@@ -3,6 +3,7 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Users/blkhrt/Desktop/Workplace/PPGExtractExample/app/src/main/res/layout/activity_main.xml" value="0.69375" />
         <entry key="..\:/Users/blkhrt/Documents/Work/New folder/STC_dEV/STC_dEV/MyApplication/PPGExtract/src/main/res/drawable/fingerprint.xml" value="0.1" />
         <entry key="..\:/Users/blkhrt/Documents/Work/New folder/STC_dEV/STC_dEV/MyApplication/PPGExtract/src/main/res/layout/activity_caliba_ratan.xml" value="0.1" />
         <entry key="..\:/Users/blkhrt/Documents/Work/New folder/STC_dEV/STC_dEV/MyApplication/PPGExtract/src/main/res/layout/activity_camera2.xml" value="0.5548007246376812" />
@@ -23,5 +24,8 @@
   </component>
   <component name="ProjectType">
     <option name="id" value="Android" />
+  </component>
+  <component name="SuppressKotlinCodeStyleNotification">
+    <option name="disableForAll" value="true" />
   </component>
 </project>
