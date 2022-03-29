@@ -1,5 +1,7 @@
 package com.example.myapplication;
 
+
+
 import android.Manifest;
 import android.content.ComponentName;
 import android.content.Context;
@@ -14,6 +16,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
 import android.util.Size;
+import android.view.TextureView;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -33,12 +36,11 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
-import com.example.ppgextract.CameraService;
-import com.example.ppgextract.MessageEvent;
 
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
+import com.example.ppgextract.CameraModule;
+import com.example.ppgextract.MyListener;
+
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -49,13 +51,13 @@ public class MainActivity extends AppCompatActivity {
     private Button openCamera;
     private CameraManager cameraManager;
     private Handler handler;
-    private CameraStateCallback cameraStateCallback;
+    //private CameraStateCallback cameraStateCallback;
     private Size videoSize;
     private String st4;
-    CameraService cameraService;
+    //CameraService cameraService;
     boolean mBound = false;
-    private static final String APIKEY="CNCP7WP9kBDssPVtu61e";
-    private static final String EMPID="BIRLA000006";
+    private static final String APIKEY="CRAFTVEDA";
+    private static final String EMPID="7439115050";
     private static String URL = "https://sdk-dev.carenow.healthcare/vitals/create-token";
     private String height;
     private String weight;
@@ -63,21 +65,20 @@ public class MainActivity extends AppCompatActivity {
     private EditText Weight;
     private TextView Status;
     private Button Token;
-    private EditText resBody;
+    private TextureView textureView;
+    //private EditText resBody;
     private Button reset;
     private static final int requestCode = 100;
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onMessageEvent(MessageEvent event) {
-        if(event.message.equals("SCANSUCCESS")){
-            SharedPreferences preferences = getSharedPreferences("PPGAPP",0);
-            String response = preferences.getString("response","");
-            resBody.setText(response);
-            resBody.setVisibility(View.VISIBLE);
-            reset.setVisibility(View.VISIBLE);
-        }
-        Status.setText(event.message);
-        Toast.makeText(this, event.message, Toast.LENGTH_SHORT).show();
-    }
+    private boolean isBind = false;
+    //private AutoFitTextureView autoFitTextureView;
+
+    CameraModule cameraModule;
+    private TextView heartrate;
+    private TextView bpsys;
+    private TextView bpdia;
+    private TextView bpressys;
+    private TextView Percent;
+    private TextView bpresdia;
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -94,6 +95,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
+        cameraModule = new CameraModule(getApplicationContext(),myListener);
         SharedPreferences preferences = getSharedPreferences("PPGAPP",0);
         SharedPreferences.Editor editor = preferences.edit();
         super.onCreate(savedInstanceState);
@@ -106,54 +108,117 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
-        cameraStateCallback = new CameraStateCallback();
+        Percent = findViewById(R.id.status2);
+
         cameraManager = (CameraManager) getApplicationContext().getSystemService(Context.CAMERA_SERVICE);
         Weight = findViewById(R.id.weight);
         Height = findViewById(R.id.height);
+        heartrate = findViewById(R.id.heart);
+        bpsys = findViewById(R.id.bpsys);
+        bpdia = findViewById(R.id.bpdia);
+        bpresdia=findViewById(R.id.bpresdia);
+        bpressys = findViewById(R.id.bpresysys);
         Status = findViewById(R.id.status);
         Token = findViewById(R.id.button2);
         openCamera = findViewById(R.id.button);
         reset = findViewById(R.id.button3);
         reset.setVisibility(View.INVISIBLE);
-
+        //autoFitTextureView = findViewById(R.id.textureView);
         openCamera.setVisibility(View.INVISIBLE);
-        resBody = findViewById(R.id.resBody);
-        resBody.setVisibility(View.INVISIBLE);
+        //resBody = findViewById(R.id.resBody);
+        //resBody.setVisibility(View.INVISIBLE);
         reset.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 resetState();
+
             }
         });
         Token.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+
                 generateToken();
             }
         });
         openCamera.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                StartScan();
-
+                cameraModule = new CameraModule(getApplicationContext(),myListener);
+                cameraModule.checkToken();
+                reset.setVisibility(View.VISIBLE);
+                openCamera.setVisibility(View.INVISIBLE);
             }
         });
+
     }
+    MyListener myListener = new MyListener() {
+        @Override
+        public void onStatusChange(String result) {
+            Status.setText(result);
+        }
+
+        @Override
+        public void onScanResult(JSONObject result) {
+            String HR="",BPSYS="",BPDIA="",BPSYSRES="",BPDIARES="";
+            try {
+
+                Log.d("RESULT--", String.valueOf(result));
+
+                HR= String.valueOf((int) result.get("heart_rate"));
+                BPSYS= String.valueOf((int) result.get("bp_sys"));
+                BPDIA= String.valueOf((int) result.get("bp_dia"));
+                BPSYSRES= String.valueOf((int) result.get("bp_res_sys"));
+                BPDIARES= String.valueOf((int) result.get("bp_res_dia"));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            Log.d("VALUE--", String.valueOf(HR));
+
+            heartrate.setText(String
+                    .valueOf( HR));
+            bpsys.setText(BPSYS);
+            bpdia.setText((BPDIA));
+            bpressys.setText((BPSYSRES));
+            bpresdia.setText((BPDIARES));
+            reset.setVisibility(View.VISIBLE);
+
+
+        }
+
+        @Override
+        public void onScanProgressed(int progress) {
+            String p = progress+"%";
+            Percent.setText(p);
+        }
+    };
+
+
 
     private void resetState() {
         height =null;
         weight = null;
         Height.setText("");
         Weight.setText("");
+        Percent.setText("");
+        heartrate.setText("--");
+        bpsys.setText("--");
+        bpdia.setText("--");
+        bpressys.setText("--");
+        bpresdia.setText("--");
         Token.setVisibility(View.VISIBLE);
         openCamera.setVisibility(View.INVISIBLE);
-        resBody.setText("");
-        resBody.setVisibility(View.INVISIBLE);
+        //resBody.setText("");
+        //resBody.setVisibility(View.INVISIBLE);
         Height.setVisibility(View.VISIBLE);
         Weight.setVisibility(View.VISIBLE);
-        Intent intent = new Intent(MainActivity.this,CameraService.class);
+        //Intent intent = new Intent(MainActivity.this,CameraService.class);
+        //stopService(intent);
         reset.setVisibility(View.INVISIBLE);
         Status.setText("Status");
+        //cameraService = null;
+
+        //unbindService(connection);
 
 
     }
@@ -166,8 +231,7 @@ public class MainActivity extends AppCompatActivity {
         Height.setVisibility(View.INVISIBLE);
         Weight.setVisibility(View.INVISIBLE);
 
-        Intent intent = new Intent(MainActivity.this, CameraService.class);
-       bindService(intent,connection,Context.BIND_AUTO_CREATE);
+        cameraModule.checkToken();
 
         openCamera.setVisibility(View.INVISIBLE);
     }
@@ -200,8 +264,8 @@ public class MainActivity extends AppCompatActivity {
                             Token.setVisibility(View.INVISIBLE);
 
                         }else{
-                            Log.d("REQ-BODY--", String.valueOf(response));
-                            Log.d("RES--", String.valueOf(response.get("message")));
+                            Log.d("REQ-BODY--", String.valueOf(reqBody));
+                            Toast.makeText(MainActivity.this, String.valueOf(response.get("message")), Toast.LENGTH_SHORT).show();
                         }
                     } catch (JSONException e) {
                         e.printStackTrace();
@@ -218,7 +282,7 @@ public class MainActivity extends AppCompatActivity {
                 public Map<String, String> getHeaders() throws AuthFailureError {
                     final  Map<String, String>  params = new HashMap<>();
 
-                    params.put("Authorization", "aOfzaucVmyf37wXJ9ASsAqVlUkaEXpqqMjWqUQlF");
+                    params.put("Authorization", "aOfzaucVmyf37wXJ9ASsAqVlUkaEXpqqMjWqUQlE");
                     return  params;
                 }
             };
@@ -232,28 +296,14 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
-        EventBus.getDefault().unregister(this);
+
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        EventBus.getDefault().register(this);
+
 
     }
-    private ServiceConnection connection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
-            CameraService.LocalBinder binder = (CameraService.LocalBinder) iBinder;
-            cameraService = binder.getService();
-            cameraService.checkToken();
 
-            Log.d("TAG--",cameraService.getCamera(cameraManager));
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName componentName) {
-                Log.d("SERVICEE--","DISCONNETED");
-        }
-    };
 }
