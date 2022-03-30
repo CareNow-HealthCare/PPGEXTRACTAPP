@@ -62,7 +62,7 @@ public class CameraModule {
 
     private static String URL = "https://sdk-dev.carenow.healthcare/vitals/add-scan";
     protected static final int CAMERA_CALIBRATION_DELAY = 500;
-    protected static final String TAG = "myLog";
+    protected static final String TAG = "SDK";
     protected static final int CAMERACHOICE = CameraCharacteristics.LENS_FACING_BACK;
     protected static long cameraCaptureStartTime;
     protected CameraDevice cameraDevice;
@@ -77,7 +77,7 @@ public class CameraModule {
     private ArrayList<Long> ppgTime = new ArrayList<>();
     private  int progress;
     private double percent=21000d;
-    private TextureView preview;
+    private Surface preview;
     private String status="STANDBY";
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(context) {
@@ -305,7 +305,7 @@ public class CameraModule {
 
 
     }
-    public void checkToken(){
+    public void checkToken(TextureView textureView){
         SharedPreferences preferences = context.getSharedPreferences("PPGAPP",0);
         SharedPreferences.Editor editor = preferences.edit();
         String URL="https://sdk-dev.carenow.healthcare/vitals/check-token";
@@ -326,7 +326,7 @@ public class CameraModule {
                         if(response.get("statusCode").equals(200)){
                             allow_scan=true;
                             Log.d("SDK--","Token Verified");
-                            readyCamera();
+                            readyCamera(textureView);
 
                         }else{
                             //EventBus.getDefault().post(new MessageEvent((String) response.get("message")));
@@ -370,7 +370,8 @@ public class CameraModule {
 
     }
 
-    public void readyCamera() {
+    public void readyCamera(TextureView textureView) {
+        preview = new Surface(textureView.getSurfaceTexture());
         scanStopped=false;
         //stopBackgroundThread();
         CameraManager manager = (CameraManager) context.getSystemService(CAMERA_SERVICE);
@@ -445,7 +446,7 @@ public class CameraModule {
     {
 
         try {
-            cameraDevice.createCaptureSession(Arrays.asList(imageReader.getSurface()), sessionStateCallback, null);
+            cameraDevice.createCaptureSession(Arrays.asList(preview,imageReader.getSurface()), sessionStateCallback, null);
         } catch (CameraAccessException e){
             Log.e(TAG, e.getMessage());
         }
@@ -504,6 +505,7 @@ public class CameraModule {
         try {
             CaptureRequest.Builder builder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
             builder.addTarget(imageReader.getSurface());
+            builder.addTarget(preview);
             builder.set(CaptureRequest.FLASH_MODE,CaptureRequest.FLASH_MODE_TORCH);
 
             return builder.build();

@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -43,6 +44,7 @@ import com.example.ppgextract.MyListener;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.w3c.dom.Text;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -56,8 +58,8 @@ public class MainActivity extends AppCompatActivity {
     private String st4;
     //CameraService cameraService;
     boolean mBound = false;
-    private static final String APIKEY="CRAFTVEDA";
-    private static final String EMPID="7439115050";
+    private static final String APIKEY="SUNLIFE";
+    private static final String EMPID="8240328816";
     private static String URL = "https://sdk-dev.carenow.healthcare/vitals/create-token";
     private String height;
     private String weight;
@@ -65,7 +67,29 @@ public class MainActivity extends AppCompatActivity {
     private EditText Weight;
     private TextView Status;
     private Button Token;
+    private boolean previewReady=false;
     private TextureView textureView;
+    private TextureView.SurfaceTextureListener surfaceTextureListener= new TextureView.SurfaceTextureListener() {
+        @Override
+        public void onSurfaceTextureAvailable(@NonNull SurfaceTexture surfaceTexture, int i, int i1) {
+            previewReady=true;
+        }
+
+        @Override
+        public void onSurfaceTextureSizeChanged(@NonNull SurfaceTexture surfaceTexture, int i, int i1) {
+
+        }
+
+        @Override
+        public boolean onSurfaceTextureDestroyed(@NonNull SurfaceTexture surfaceTexture) {
+            return false;
+        }
+
+        @Override
+        public void onSurfaceTextureUpdated(@NonNull SurfaceTexture surfaceTexture) {
+
+        }
+    };
     //private EditText resBody;
     private Button reset;
     private static final int requestCode = 100;
@@ -79,6 +103,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView bpressys;
     private TextView Percent;
     private TextView bpresdia;
+
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -100,6 +125,8 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences.Editor editor = preferences.edit();
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        textureView = (TextureView) findViewById(R.id.textureView);
+        textureView.setSurfaceTextureListener(surfaceTextureListener);
         handler = new Handler();
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
@@ -144,10 +171,13 @@ public class MainActivity extends AppCompatActivity {
         openCamera.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if(previewReady) {
                 cameraModule = new CameraModule(getApplicationContext(),myListener);
-                cameraModule.checkToken();
-                reset.setVisibility(View.VISIBLE);
-                openCamera.setVisibility(View.INVISIBLE);
+                    textureView.setVisibility(View.VISIBLE);
+                    cameraModule.checkToken(textureView);
+                    reset.setVisibility(View.VISIBLE);
+                    openCamera.setVisibility(View.INVISIBLE);
+                }
             }
         });
 
@@ -196,6 +226,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void resetState() {
+        textureView.setVisibility(View.INVISIBLE);
         height =null;
         weight = null;
         Height.setText("");
@@ -231,7 +262,7 @@ public class MainActivity extends AppCompatActivity {
         Height.setVisibility(View.INVISIBLE);
         Weight.setVisibility(View.INVISIBLE);
 
-        cameraModule.checkToken();
+        //cameraModule.checkToken();
 
         openCamera.setVisibility(View.INVISIBLE);
     }
@@ -282,7 +313,7 @@ public class MainActivity extends AppCompatActivity {
                 public Map<String, String> getHeaders() throws AuthFailureError {
                     final  Map<String, String>  params = new HashMap<>();
 
-                    params.put("Authorization", "aOfzaucVmyf37wXJ9ASsAqVlUkaEXpqqMjWqUQlE");
+                    params.put("Authorization", "aOfzaucVmyf37wXJ9ASsAqVlUkaEXpqqMjWqUQlF");
                     return  params;
                 }
             };
