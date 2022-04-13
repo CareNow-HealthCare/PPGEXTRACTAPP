@@ -63,7 +63,7 @@ public class CameraModule {
     private static String URL = "https://sdk-dev.carenow.healthcare/vitals/add-scan";
     protected static final int CAMERA_CALIBRATION_DELAY = 500;
     protected static final String TAG = "SDK";
-    protected static final int CAMERACHOICE = CameraCharacteristics.LENS_FACING_BACK;
+    protected final int CAMERACHOICE = this.camtype;
     protected static long cameraCaptureStartTime;
     protected CameraDevice cameraDevice;
     protected CameraCaptureSession session;
@@ -97,6 +97,7 @@ public class CameraModule {
             }
         }
     };
+    private int camtype;
     private MyListener ml;
     protected CameraDevice.StateCallback cameraStateCallback = new CameraDevice.StateCallback() {
         @Override
@@ -192,12 +193,11 @@ public class CameraModule {
                 }
                 processImage(img);
 
-
-
+                img.close();
             }
 
 
-            img.close();
+
 
         }
     };
@@ -390,7 +390,7 @@ public class CameraModule {
         }
     }
     private void scanProgressed(){
-        Log.d("pROGRESS--", String.valueOf(progress));
+        Log.d("PROGRESS--", String.valueOf(progress));
         ml.onScanProgressed(progress);
 
     }
@@ -400,7 +400,7 @@ public class CameraModule {
             for (String cameraId : manager.getCameraIdList()) {
                 CameraCharacteristics characteristics = manager.getCameraCharacteristics(cameraId);
                 int cOrientation = characteristics.get(CameraCharacteristics.LENS_FACING);
-                if (cOrientation == CAMERACHOICE) {
+                if (cOrientation ==this.camtype) {
                     return cameraId;
                 }
             }
@@ -409,7 +409,9 @@ public class CameraModule {
         }
         return null;
     }
-    public CameraModule(Context context,MyListener ml){
+    public CameraModule(Context context,MyListener ml,int camtype){
+        Log.d("Cam--", String.valueOf(camtype));
+        this.camtype = camtype;
         this.ml = ml;
         this.context=context;
         startBackgroundThread();

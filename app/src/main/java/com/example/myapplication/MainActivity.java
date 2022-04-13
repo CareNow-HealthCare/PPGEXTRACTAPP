@@ -20,7 +20,9 @@ import android.util.Size;
 import android.view.TextureView;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -56,6 +58,7 @@ public class MainActivity extends AppCompatActivity {
     //private CameraStateCallback cameraStateCallback;
     private Size videoSize;
     private String st4;
+    private Switch aSwitch;
     //CameraService cameraService;
     boolean mBound = false;
     private static final String APIKEY="SUNLIFE";
@@ -103,6 +106,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView bpressys;
     private TextView Percent;
     private TextView bpresdia;
+    private int camtype;
 
 
     @Override
@@ -120,10 +124,11 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
-        cameraModule = new CameraModule(getApplicationContext(),myListener);
+        cameraModule = new CameraModule(getApplicationContext(),myListener,camtype);
         SharedPreferences preferences = getSharedPreferences("PPGAPP",0);
         SharedPreferences.Editor editor = preferences.edit();
         super.onCreate(savedInstanceState);
+        camtype=1;
         setContentView(R.layout.activity_main);
         textureView = (TextureView) findViewById(R.id.textureView);
         textureView.setSurfaceTextureListener(surfaceTextureListener);
@@ -149,7 +154,20 @@ public class MainActivity extends AppCompatActivity {
         Token = findViewById(R.id.button2);
         openCamera = findViewById(R.id.button);
         reset = findViewById(R.id.button3);
+        aSwitch = findViewById(R.id.switch1);
         reset.setVisibility(View.INVISIBLE);
+        aSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                if(compoundButton.isChecked()){
+                    compoundButton.setText("Face");
+                    camtype = 0;
+                }else{
+                    compoundButton.setText("Finger");
+                    camtype = 1;
+                }
+            }
+        });
         //autoFitTextureView = findViewById(R.id.textureView);
         openCamera.setVisibility(View.INVISIBLE);
         //resBody = findViewById(R.id.resBody);
@@ -172,7 +190,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 if(previewReady) {
-                cameraModule = new CameraModule(getApplicationContext(),myListener);
+                cameraModule = new CameraModule(getApplicationContext(),myListener,camtype);
                     textureView.setVisibility(View.VISIBLE);
                     cameraModule.checkToken(textureView);
                     reset.setVisibility(View.VISIBLE);
@@ -193,17 +211,17 @@ public class MainActivity extends AppCompatActivity {
             String HR="",BPSYS="",BPDIA="",BPSYSRES="",BPDIARES="";
             try {
 
-                Log.d("RESULT--", String.valueOf(result));
+                //Log.d("RESULT--", String.valueOf(result));
 
                 HR= String.valueOf((int) result.get("heart_rate"));
                 BPSYS= String.valueOf((int) result.get("bp_sys"));
                 BPDIA= String.valueOf((int) result.get("bp_dia"));
-                BPSYSRES= String.valueOf((int) result.get("bp_res_sys"));
-                BPDIARES= String.valueOf((int) result.get("bp_res_dia"));
+//                BPSYSRES= String.valueOf((int) result.get("bp_res_sys"));
+//                BPDIARES= String.valueOf((int) result.get("bp_res_dia"));
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-            Log.d("VALUE--", String.valueOf(HR));
+            //Log.d("VALUE--", String.valueOf(HR));
 
             heartrate.setText(String
                     .valueOf( HR));
@@ -247,6 +265,7 @@ public class MainActivity extends AppCompatActivity {
         //stopService(intent);
         reset.setVisibility(View.INVISIBLE);
         Status.setText("Status");
+        cameraModule.stopSDK();
         //cameraService = null;
 
         //unbindService(connection);
